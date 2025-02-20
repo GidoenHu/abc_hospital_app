@@ -1,0 +1,7 @@
+package ManagementSystemABCHospital;
+
+public class App {
+    public static void main(String[] args) {
+        new Index();
+    }
+}
