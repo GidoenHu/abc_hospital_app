@@ -1,9 +1,9 @@
 package ManagementSystemABCHospital;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.*;
 
 public class Index extends JFrame implements ActionListener {
     JMenuItem BloodData = new JMenuItem("Blood Data");
@@ -16,6 +16,12 @@ public class Index extends JFrame implements ActionListener {
 
     private JButton loginButton;
     private JButton registerButton;
+
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+    private JTextField captchaField;
+    private JLabel captchaLabel;
+    private String currentCaptcha;
 
     public Index() {
         // 设置窗口属性
@@ -31,7 +37,7 @@ public class Index extends JFrame implements ActionListener {
     }
 
     private void initFrame() {
-        this.setSize(430, 632);  // 适配 iPhone 16 Pro Max
+        this.setSize(430, 632); // 适配 iPhone 16 Pro Max
         this.setTitle("ABC Hospital Management System");
         this.setResizable(false);
         this.setLocationRelativeTo(null);
@@ -107,7 +113,7 @@ public class Index extends JFrame implements ActionListener {
         usernameLabel.setBounds(50, 250, 100, 30);
         backgroundPanel.add(usernameLabel);
 
-        JTextField usernameField = new JTextField();
+        usernameField = new JTextField();
         usernameField.setFont(new Font("Arial", Font.PLAIN, 18));
         usernameField.setBounds(160, 250, 200, 30);
         backgroundPanel.add(usernameField);
@@ -118,20 +124,45 @@ public class Index extends JFrame implements ActionListener {
         passwordLabel.setBounds(50, 300, 100, 30);
         backgroundPanel.add(passwordLabel);
 
-        JPasswordField passwordField = new JPasswordField();
+        passwordField = new JPasswordField();
         passwordField.setFont(new Font("Arial", Font.PLAIN, 18));
         passwordField.setBounds(160, 300, 200, 30);
         backgroundPanel.add(passwordField);
 
+        // **验证码**
+        JLabel captchaTitle = new JLabel("Captcha:");
+        captchaTitle.setFont(new Font("Arial", Font.PLAIN, 18));
+        captchaTitle.setBounds(50, 350, 100, 30);
+        backgroundPanel.add(captchaTitle);
+
+        captchaField = new JTextField();
+        captchaField.setFont(new Font("Arial", Font.PLAIN, 18));
+        captchaField.setBounds(160, 350, 100, 30);
+        backgroundPanel.add(captchaField);
+
+        // 生成初始验证码
+        currentCaptcha = generateCaptcha();
+        captchaLabel = new JLabel(currentCaptcha);
+        captchaLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        captchaLabel.setBounds(270, 350, 90, 30);
+        captchaLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        backgroundPanel.add(captchaLabel);
+
+        // 添加刷新验证码按钮
+        JButton refreshCaptcha = new JButton("↻");
+        refreshCaptcha.setBounds(360, 350, 40, 30);
+        refreshCaptcha.addActionListener(e -> refreshCaptcha());
+        backgroundPanel.add(refreshCaptcha);
+
         // **登录按钮**
         loginButton = new JButton("Login");
-        styleButton(loginButton, 50, 370, 140, 40, new Color(72, 209, 204));
+        styleButton(loginButton, 50, 400, 140, 40, new Color(72, 209, 204));
         loginButton.addActionListener(this);
         backgroundPanel.add(loginButton);
 
         // **注册按钮**
         registerButton = new JButton("Register");
-        styleButton(registerButton, 220, 370, 140, 40, new Color(255, 69, 0));
+        styleButton(registerButton, 220, 400, 140, 40, new Color(255, 69, 0));
         registerButton.addActionListener(this);
         backgroundPanel.add(registerButton);
     }
@@ -148,7 +179,33 @@ public class Index extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == loginButton) {
-            JOptionPane.showMessageDialog(this, "Login successful! Redirecting to patient page...");
+            String username = usernameField.getText();
+            String password = new String(passwordField.getPassword());
+            String inputCaptcha = captchaField.getText();
+
+            // 基础验证
+            if (username.isEmpty() || password.isEmpty() || inputCaptcha.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "所有字段必须填写", "输入错误", JOptionPane.ERROR_MESSAGE);
+                refreshCaptcha();
+                return;
+            }
+
+            // 验证码验证
+            if (!inputCaptcha.equals(currentCaptcha)) {
+                JOptionPane.showMessageDialog(this, "验证码错误", "验证失败", JOptionPane.ERROR_MESSAGE);
+                refreshCaptcha();
+                return;
+            }
+
+            // 模拟用户验证（实际应连接数据库）
+            if ("admin".equals(username) && "admin".equals(password)) {
+                JOptionPane.showMessageDialog(this, "登录成功！正在跳转...");
+                new Patient().setVisible(true);
+                this.dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "用户名或密码错误", "登录失败", JOptionPane.ERROR_MESSAGE);
+                refreshCaptcha();
+            }
         } else if (e.getSource() == registerButton) {
             JOptionPane.showMessageDialog(this, "Only doctors can register an account for patients.");
         } else if (e.getSource() == BloodData) {
@@ -173,7 +230,15 @@ public class Index extends JFrame implements ActionListener {
         newFrame.setVisible(true);
         this.dispose(); // 关闭当前窗口
     }
+
+    // 生成4位数字验证码
+    private String generateCaptcha() {
+        return String.valueOf((int) (Math.random() * 9000) + 1000);
+    }
+
+    // 刷新验证码
+    private void refreshCaptcha() {
+        currentCaptcha = generateCaptcha();
+        captchaLabel.setText(currentCaptcha);
+    }
 }
-
-
-
